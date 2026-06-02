@@ -1,26 +1,267 @@
 @import "tailwindcss";
 
+/*
+  HakiDocs design system — "Premium legal authority, Kenyan soul."
+  Deep navy command-presence + a warm gold (scales-of-justice) accent.
+  Serif display for headlines, clean sans for UI, true serif for documents.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf9f5; /* warm parchment white */
+  --foreground: #0a1020; /* near-black navy ink */
+
+  /* Brand navy (authority) — exposed as --haki-* so the whole UI inherits it */
+  --haki-50: #eef1f8;
+  --haki-100: #dde3f1;
+  --haki-200: #bcc8e1;
+  --haki-300: #91a3c9;
+  --haki-400: #647aaa;
+  --haki-500: #45598c;
+  --haki-600: #33446e;
+  --haki-700: #243156; /* primary */
+  --haki-800: #1a2440;
+  --haki-900: #121a30;
+  --haki-950: #0a1020;
+
+  /* Gold accent (justice / seal) */
+  --gold-50: #fbf7ea;
+  --gold-100: #f6edca;
+  --gold-200: #ecd78d;
+  --gold-300: #e2c057;
+  --gold-400: #d6ab35;
+  --gold-500: #c9a227; /* primary gold */
+  --gold-600: #a8841d;
+  --gold-700: #836418;
+  --gold-800: #5e4811;
+
+  --paper: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-haki-50: var(--haki-50);
+  --color-haki-100: var(--haki-100);
+  --color-haki-200: var(--haki-200);
+  --color-haki-300: var(--haki-300);
+  --color-haki-400: var(--haki-400);
+  --color-haki-500: var(--haki-500);
+  --color-haki-600: var(--haki-600);
+  --color-haki-700: var(--haki-700);
+  --color-haki-800: var(--haki-800);
+  --color-haki-900: var(--haki-900);
+  --color-haki-950: var(--haki-950);
+
+  --color-gold-50: var(--gold-50);
+  --color-gold-100: var(--gold-100);
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-800: var(--gold-800);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Display headings use the serif face by default where applied */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--haki-200);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--haki-300);
+}
+::selection {
+  background: var(--gold-200);
+  color: var(--haki-950);
+}
+
+/* The generated legal document reads like a formal letter */
+.legal-document {
+  font-family: var(--font-serif);
+  line-height: 1.75;
+}
+
+/* Gold gradient text for accents */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #e2c057 0%, #c9a227 45%, #a8841d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Thin gold rule used as a brand divider */
+.gold-rule {
+  height: 2px;
+  width: 56px;
+  background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+}
+
+/* Hairline grid / paper texture for hero backdrops */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(36, 49, 86, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(36, 49, 86, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Elevated card with refined ring + shadow */
+.card-elevated {
+  background: var(--paper);
+  border: 1px solid var(--haki-100);
+  box-shadow:
+    0 1px 2px rgba(10, 16, 32, 0.04),
+    0 12px 32px -12px rgba(10, 16, 32, 0.12);
+}
+
+/*
+  Print styles — hide everything except the document itself.
+*/
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ---- Motion ---------------------------------------------------------- */
+
+@keyframes haki-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: haki-fade-up 0.5s ease-out both;
+}
+
+/* Scroll-reveal: hidden until .is-visible is toggled by IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes haki-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.animate-float {
+  animation: haki-float 6s ease-in-out infinite;
+}
+
+@keyframes haki-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes haki-seal-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-12deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+.animate-seal-in {
+  animation: haki-seal-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes haki-aurora {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -2%, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(-2%, 2%, 0) scale(0.97);
+  }
+}
+.animate-aurora {
+  animation: haki-aurora 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-float,
+  .animate-aurora,
+  .animate-seal-in {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
