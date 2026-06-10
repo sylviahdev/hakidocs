@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateDocument } from "@/lib/anthropic";
+import { generateDocument } from "@/lib/backend";
 import { createClient } from "@/lib/supabase/server";
 import { documentTypeLabel } from "@/lib/documentTypes";
 import type {
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     const message =
       err instanceof Error ? err.message : "Failed to generate the document.";
     // Surface configuration errors clearly; keep model errors generic.
-    const status = message.includes("ANTHROPIC_API_KEY") ? 500 : 502;
+    const status = message.includes("GEMINI_API_KEY") ? 500 : 502;
     return NextResponse.json({ error: message }, { status });
   }
 

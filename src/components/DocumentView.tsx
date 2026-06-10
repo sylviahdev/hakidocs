@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { GeneratedDocument } from "@/lib/types";
 import { downloadDocumentPdf } from "@/lib/pdf";
+import {
+  PLACEHOLDER_RE,
+  countFilled,
+  extractPlaceholders,
+  fillDocument,
+  placeholderLabel,
+} from "@/lib/placeholders";
 import Seal from "./Seal";
+import PlaceholderPanel from "./PlaceholderPanel";
 
 function toPlainText(doc: GeneratedDocument): string {
   const parts: string[] = [];
@@ -17,6 +25,51 @@ function toPlainText(doc: GeneratedDocument): string {
   parts.push(doc.swahiliSummary + "\n");
   parts.push(doc.disclaimer);
   return parts.join("\n");
+}
+
+/**
+ * Render a string, swapping filled placeholders for their value and visually
+ * marking any [blank] that is still empty.
+ */
+function renderText(
+  text: string,
+  values: Record<string, string>,
+  highlight: boolean,
+  keyPrefix: string,
+): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const re = new RegExp(PLACEHOLDER_RE.source, "g");
+  let last = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > last) nodes.push(text.slice(last, match.index));
+    const value = values[placeholderLabel(match[0])]?.trim();
+    if (value) {
+      nodes.push(
+        <span key={`${keyPrefix}-${i}`} className="font-semibold text-haki-950">
+          {value}
+        </span>,
+      );
+    } else {
+      nodes.push(
+        <span
+          key={`${keyPrefix}-${i}`}
+          className={
+            highlight
+              ? "rounded bg-gold-100 px-1 text-gold-800 ring-1 ring-gold-300 print:bg-transparent print:text-haki-900 print:ring-0"
+              : undefined
+          }
+        >
+          {match[0]}
+        </span>,
+      );
+    }
+    last = match.index + match[0].length;
+    i++;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
 }
 
 function ActionButton({
@@ -45,10 +98,21 @@ function ActionButton({
 
 export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
   const [copied, setCopied] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [highlight, setHighlight] = useState(true);
+
+  const placeholders = useMemo(() => extractPlaceholders(doc), [doc]);
+  const remaining = placeholders.length - countFilled(placeholders, values);
+
+  // The export-ready document with all filled values applied.
+  const filledDoc = useMemo(
+    () => fillDocument(doc, values),
+    [doc, values],
+  );
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(toPlainText(doc));
+      await navigator.clipboard.writeText(toPlainText(filledDoc));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -56,8 +120,24 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
     }
   };
 
+  const r = (text: string, keyPrefix: string) =>
+    renderText(text, values, highlight, keyPrefix);
+
   return (
     <div className="animate-fade-up">
+      {/* Inline placeholder editor */}
+      {placeholders.length > 0 && (
+        <PlaceholderPanel
+          placeholders={placeholders}
+          values={values}
+          onChange={(label, value) =>
+            setValues((v) => ({ ...v, [label]: value }))
+          }
+          highlight={highlight}
+          onToggleHighlight={setHighlight}
+        />
+      )}
+
       {/* Success banner + action bar */}
       <div className="no-print mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
@@ -67,12 +147,24 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
           <ActionButton onClick={handleCopy} primary>
             {copied ? "✓ Copied" : "📋 Copy"}
           </ActionButton>
-          <ActionButton onClick={() => downloadDocumentPdf(doc)}>
+          <ActionButton onClick={() => downloadDocumentPdf(filledDoc)}>
             ⬇️ Download PDF
           </ActionButton>
           <ActionButton onClick={() => window.print()}>🖨️ Print</ActionButton>
         </div>
       </div>
+
+      {/* Reminder when blanks remain */}
+      {remaining > 0 && (
+        <div className="no-print mb-4 flex items-center gap-2 rounded-lg border border-gold-200 bg-gold-50 px-4 py-2.5 text-sm text-gold-800">
+          <span>⚠️</span>
+          <span>
+            {remaining} blank{remaining > 1 ? "s" : ""} still to fill before you
+            send or export. Empty blanks export as{" "}
+            <span className="font-mono text-xs">[like this]</span>.
+          </span>
+        </div>
+      )}
 
       {/* The document sheet — this is the print target */}
       <article className="print-area legal-document card-elevated relative overflow-hidden rounded-2xl p-6 sm:p-12">
@@ -97,7 +189,7 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
             {doc.documentTypeLabel}
           </p>
           <h1 className="font-serif text-2xl font-bold uppercase leading-tight text-haki-950 sm:text-3xl">
-            {doc.title}
+            {r(doc.title, "title")}
           </h1>
           <p className="mt-3 text-[0.65rem] uppercase tracking-[0.35em] text-haki-400">
             Drafted by HakiDocs · Republic of Kenya
@@ -114,7 +206,7 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
               <div className="space-y-3 text-[0.95rem] text-haki-900">
                 {section.body.split(/\n{2,}/).map((para, j) => (
                   <p key={j} className="whitespace-pre-wrap">
-                    {para.trim()}
+                    {r(para.trim(), `s${i}-p${j}`)}
                   </p>
                 ))}
               </div>
@@ -128,7 +220,7 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
             <span>📌</span> Muhtasari · Swahili Summary
           </h2>
           <p className="whitespace-pre-wrap text-[0.95rem] italic text-gold-900">
-            {doc.swahiliSummary}
+            {r(doc.swahiliSummary, "swahili")}
           </p>
         </section>
 
