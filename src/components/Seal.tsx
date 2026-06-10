@@ -1,17 +1,20 @@
 /**
- * HakiDocs crest — a gold scales-of-justice seal.
- * Used as the brand mark in the navbar, hero, and on generated documents
- * (where it reads like an official embossed stamp).
+ * HakiDocs crest — a navy heraldic shield with a gold rim bearing gold scales
+ * of justice. Used as the brand mark in the navbar, hero, and on generated
+ * documents (where it reads like an embossed crest). Navy + gold palette.
  */
 export default function Seal({
   className = "",
   size = 40,
-  title = "HakiDocs seal",
+  title = "HakiDocs crest",
 }: {
   className?: string;
   size?: number;
   title?: string;
 }) {
+  // Heraldic shield: flat top, curved sides, pointed base.
+  const shield = "M14 14 H86 V44 C86 66 71 82 50 90 C29 82 14 66 14 44 Z";
+
   return (
     <svg
       viewBox="0 0 100 100"
@@ -29,47 +32,35 @@ export default function Seal({
         </linearGradient>
       </defs>
 
-      {/* Outer ring */}
-      <circle
-        cx="50"
-        cy="50"
-        r="47"
+      {/* Navy shield. */}
+      <path d={shield} fill="#16284a" />
+
+      {/* Gold rim. */}
+      <path
+        d={shield}
         fill="none"
         stroke="url(#haki-gold)"
-        strokeWidth="2.5"
-      />
-      <circle
-        cx="50"
-        cy="50"
-        r="41"
-        fill="none"
-        stroke="url(#haki-gold)"
-        strokeWidth="1"
-        strokeDasharray="1 3"
+        strokeWidth="3.2"
+        strokeLinejoin="round"
       />
 
-      {/* Scales of justice */}
+      {/* Gold scales of justice. */}
       <g
         fill="none"
         stroke="url(#haki-gold)"
-        strokeWidth="2.4"
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        {/* Central pillar */}
-        <path d="M50 28 V70" />
-        {/* Base */}
-        <path d="M40 72 H60" />
-        {/* Beam */}
-        <path d="M30 36 H70" />
-        <circle cx="50" cy="30" r="2.4" fill="url(#haki-gold)" stroke="none" />
-        {/* Left pan strings + pan */}
-        <path d="M30 36 L24 50 M30 36 L36 50" />
-        <path d="M22 50 a8 5 0 0 0 16 0" />
-        {/* Right pan strings + pan */}
-        <path d="M70 36 L64 50 M70 36 L76 50" />
-        <path d="M62 50 a8 5 0 0 0 16 0" />
+        <path d="M50 30 V66" />
+        <path d="M41 68 H59" />
+        <path d="M32 38 H68" />
+        <path d="M32 38 L26 50 M32 38 L38 50" />
+        <path d="M24 50 a8 5 0 0 0 16 0" />
+        <path d="M68 38 L62 50 M68 38 L74 50" />
+        <path d="M60 50 a8 5 0 0 0 16 0" />
       </g>
+      <circle cx="50" cy="32" r="2.4" fill="url(#haki-gold)" />
     </svg>
   );
 }
