@@ -8,6 +8,7 @@ import type {
   GenerateResponse,
   Language,
 } from "@/lib/types";
+import { extractPlaceholders } from "@/lib/placeholders";
 import DocumentView from "./DocumentView";
 
 const LANGUAGES: { id: Language; label: string }[] = [
@@ -82,6 +83,19 @@ export default function GeneratorForm({
         throw new Error(data.error || "Something went wrong. Please try again.");
       }
       setDoc(data.document);
+
+      if (typeof pendo !== "undefined") {
+        pendo.track("document_generated", {
+          documentType: data.document.documentType,
+          documentTypeLabel: data.document.documentTypeLabel,
+          language,
+          problemLength: problem.length,
+          sectionCount: data.document.sections.length,
+          placeholderCount: extractPlaceholders(data.document).length,
+          wasSaved: Boolean(data.savedId),
+          documentTitle: data.document.title,
+        });
+      }
       setTimeout(
         () =>
           document
@@ -90,7 +104,17 @@ export default function GeneratorForm({
         80,
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error.");
+      const errorMessage = err instanceof Error ? err.message : "Unexpected error.";
+      setError(errorMessage);
+
+      if (typeof pendo !== "undefined") {
+        pendo.track("document_generation_failed", {
+          documentType: docType,
+          language,
+          problemLength: problem.length,
+          errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -31,12 +31,21 @@ export default function DashboardClient({
     if (!confirm("Delete this document permanently?")) return;
     setDeleting(id);
     try {
+      const docToDelete = documents.find((d) => d.id === id);
       const res = await fetch(`/api/documents?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
       });
       if (res.ok) {
         setDocuments((docs) => docs.filter((d) => d.id !== id));
         if (openId === id) setOpenId(null);
+
+        if (typeof pendo !== "undefined" && docToDelete) {
+          pendo.track("document_deleted", {
+            documentId: docToDelete.id,
+            documentType: docToDelete.document_type,
+            documentTitle: docToDelete.title,
+          });
+        }
       }
     } finally {
       setDeleting(null);

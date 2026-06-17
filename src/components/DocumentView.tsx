@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GeneratedDocument } from "@/lib/types";
 import { downloadDocumentPdf } from "@/lib/pdf";
 import {
@@ -96,13 +96,16 @@ function ActionButton({
   );
 }
 
+const completedDocs = new Set<string>();
+
 export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
   const [copied, setCopied] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [highlight, setHighlight] = useState(true);
 
   const placeholders = useMemo(() => extractPlaceholders(doc), [doc]);
-  const remaining = placeholders.length - countFilled(placeholders, values);
+  const filled = countFilled(placeholders, values);
+  const remaining = placeholders.length - filled;
 
   // The export-ready document with all filled values applied.
   const filledDoc = useMemo(
@@ -110,14 +113,70 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
     [doc, values],
   );
 
+  const prevRemainingRef = useRef(remaining);
+  useEffect(() => {
+    const prev = prevRemainingRef.current;
+    prevRemainingRef.current = remaining;
+    if (placeholders.length > 0 && remaining === 0 && prev > 0) {
+      const key = `${doc.documentType}:${doc.title}`;
+      if (!completedDocs.has(key)) {
+        completedDocs.add(key);
+        if (typeof pendo !== "undefined") {
+          pendo.track("placeholders_completed", {
+            documentType: doc.documentType,
+            documentTitle: doc.title,
+            placeholderCount: placeholders.length,
+          });
+        }
+      }
+    }
+  }, [remaining, placeholders.length, doc.documentType, doc.title]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(toPlainText(filledDoc));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+
+      if (typeof pendo !== "undefined") {
+        pendo.track("document_copied", {
+          documentType: doc.documentType,
+          documentTitle: doc.title,
+          placeholdersFilled: filled,
+          placeholdersTotal: placeholders.length,
+          allPlaceholdersFilled: remaining === 0,
+        });
+      }
     } catch {
       // Clipboard may be blocked; ignore silently.
     }
+  };
+
+  const handleDownloadPdf = () => {
+    downloadDocumentPdf(filledDoc);
+
+    if (typeof pendo !== "undefined") {
+      pendo.track("document_pdf_downloaded", {
+        documentType: doc.documentType,
+        documentTitle: doc.title,
+        placeholdersFilled: filled,
+        placeholdersTotal: placeholders.length,
+        allPlaceholdersFilled: remaining === 0,
+      });
+    }
+  };
+
+  const handlePrint = () => {
+    if (typeof pendo !== "undefined") {
+      pendo.track("document_printed", {
+        documentType: doc.documentType,
+        documentTitle: doc.title,
+        placeholdersFilled: filled,
+        placeholdersTotal: placeholders.length,
+        allPlaceholdersFilled: remaining === 0,
+      });
+    }
+    window.print();
   };
 
   const r = (text: string, keyPrefix: string) =>
@@ -147,10 +206,10 @@ export default function DocumentView({ doc }: { doc: GeneratedDocument }) {
           <ActionButton onClick={handleCopy} primary>
             {copied ? "✓ Copied" : "📋 Copy"}
           </ActionButton>
-          <ActionButton onClick={() => downloadDocumentPdf(filledDoc)}>
+          <ActionButton onClick={handleDownloadPdf}>
             ⬇️ Download PDF
           </ActionButton>
-          <ActionButton onClick={() => window.print()}>🖨️ Print</ActionButton>
+          <ActionButton onClick={handlePrint}>🖨️ Print</ActionButton>
         </div>
       </div>
 
