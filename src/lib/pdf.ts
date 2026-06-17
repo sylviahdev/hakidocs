@@ -186,11 +186,11 @@ export async function downloadDocumentPdf(doc: GeneratedDocument): Promise<void>
     pdf.text(generatedOn, cx, cy + r * 0.78, { align: "center" });
   };
 
-  // --- Brand header: the HakiDocs logo lockup, centred at the top ----------
+  // --- Brand header: HakiDocs logo lockup centred directly above the title.
   const logo = await loadImageAsset("/logo.png");
   if (logo) {
-    const maxW = 232;
-    const maxH = 60;
+    const maxW = 200;
+    const maxH = 52;
     let w = maxW;
     let h = (logo.h / logo.w) * w;
     if (h > maxH) {
@@ -198,7 +198,7 @@ export async function downloadDocumentPdf(doc: GeneratedDocument): Promise<void>
       w = (logo.w / logo.h) * h;
     }
     pdf.addImage(logo.data, "PNG", (pageWidth - w) / 2, y, w, h);
-    y += h + 16;
+    y += h + 10;
   }
 
   // Title

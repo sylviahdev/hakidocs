@@ -117,41 +117,8 @@ export default function GeneratorForm({
           </div>
         )}
 
-        {/* Problem input */}
-        <label htmlFor="problem" className="sr-only">
-          Describe your legal problem
-        </label>
-        <textarea
-          id="problem"
-          value={problem}
-          onChange={(e) => setProblem(e.target.value)}
-          rows={5}
-          maxLength={6000}
-          placeholder="e.g. Landlord hanirudishii deposit yangu baada ya kuhama nyumba..."
-          className="w-full resize-y rounded-xl border border-haki-200 bg-haki-50/40 p-4 text-[0.95rem] text-haki-900 outline-none transition placeholder:text-haki-400 focus:border-gold-400 focus:bg-white focus:ring-2 focus:ring-gold-200"
-        />
-
-        {/* Example chips */}
-        <div className="mt-3">
-          <p className="mb-2 text-xs font-medium text-haki-400">
-            Try an example:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => setProblem(ex)}
-                className="rounded-full border border-haki-100 bg-haki-50 px-3 py-1 text-left text-xs text-haki-700 transition hover:border-gold-300 hover:bg-gold-50 hover:text-gold-700"
-              >
-                {ex.length > 48 ? ex.slice(0, 46) + "…" : ex}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {/* Controls — choose document type & language first */}
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label
               htmlFor="docType"
@@ -191,6 +158,42 @@ export default function GeneratorForm({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Problem input */}
+        <label
+          htmlFor="problem"
+          className="mt-6 mb-1.5 block text-xs font-semibold uppercase tracking-wide text-haki-500"
+        >
+          Describe your problem
+        </label>
+        <textarea
+          id="problem"
+          value={problem}
+          onChange={(e) => setProblem(e.target.value)}
+          rows={5}
+          maxLength={6000}
+          placeholder="e.g. Landlord hanirudishii deposit yangu baada ya kuhama nyumba..."
+          className="w-full resize-y rounded-xl border border-haki-200 bg-haki-50/40 p-4 text-[0.95rem] text-haki-900 outline-none transition placeholder:text-haki-400 focus:border-gold-400 focus:bg-white focus:ring-2 focus:ring-gold-200"
+        />
+
+        {/* Example chips */}
+        <div className="mt-3">
+          <p className="mb-2 text-xs font-medium text-haki-400">
+            Try an example:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {EXAMPLES.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => setProblem(ex)}
+                className="rounded-full border border-haki-100 bg-haki-50 px-3 py-1 text-left text-xs text-haki-700 transition hover:border-gold-300 hover:bg-gold-50 hover:text-gold-700"
+              >
+                {ex.length > 48 ? ex.slice(0, 46) + "…" : ex}
+              </button>
+            ))}
           </div>
         </div>
 
