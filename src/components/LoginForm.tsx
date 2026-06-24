@@ -35,9 +35,22 @@ export default function LoginForm() {
     if (error) {
       setStatus("error");
       setMessage(error.message);
+
+      if (typeof pendo !== "undefined") {
+        pendo.track("magic_link_request_failed", {
+          errorMessage: error.message,
+          redirectTo,
+        });
+      }
     } else {
       setStatus("sent");
       setMessage("Check your email for a secure sign-in link.");
+
+      if (typeof pendo !== "undefined") {
+        pendo.track("magic_link_requested", {
+          redirectTo,
+        });
+      }
     }
   }
 

@@ -13,8 +13,30 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     if (supabase) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        try {
+          await fetch("https://data.pendo.io/data/track", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-pendo-integration-key": "cf36e143-d85f-4200-a5ff-49c21607ae1c",
+            },
+            body: JSON.stringify({
+              type: "track",
+              event: "sign_in_completed",
+              visitorId: data.session?.user?.id ?? "system",
+              accountId: "system",
+              timestamp: Date.now(),
+              properties: {
+                redirectTo,
+                authProvider: data.session?.user?.app_metadata?.provider ?? "unknown",
+              },
+            }),
+          });
+        } catch {
+          // Don't let tracking failures break auth flow
+        }
         return NextResponse.redirect(`${origin}${redirectTo}`);
       }
     }
